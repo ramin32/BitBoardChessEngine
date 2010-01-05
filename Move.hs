@@ -3,9 +3,11 @@ module Move where
 file i = i `mod` 8
 rank i = i `div` 8
 
+posToWord file rank = 0x1 * 0x10 ^ (rank * 8 + file - 1)
+
 distance i j = (abs $ rank i - rank j,
                 abs $ file i - file j)
---
+
 -- general conditions
 sameRank, diagnalMove, knightMove :: Int -> Int -> Bool
 sameRank i j = rank i == rank j

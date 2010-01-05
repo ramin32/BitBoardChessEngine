@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleInstances #-}
 module Board where
 
 import Data.Word
@@ -7,10 +8,25 @@ import Data.List
 data PieceSet = PieceSet {setType::Piece, positions::Word64} deriving (Show)
 data Player = Player {playerColor::Color, pieces::[PieceSet]} deriving (Show)
 data Board = Board {board::[Player]}
-data Piece = Pawn | Knight | Bishop | Rook | Queen | King deriving (Eq, Show, Enum)
-data Color = White | Black deriving (Eq, Show)
-data ColoredPiece = ColoredPiece {pieceColor::Color, piece::Piece} deriving (Eq, Show)
+data Piece = Pawn | Knight | Bishop | Rook | Queen | King deriving (Eq)
+data Color = White | Black deriving (Eq)
+data ColoredPiece = ColoredPiece {pieceColor::Color, piece::Piece} deriving (Eq)
 
+instance Show Color where
+    show White = "W"
+    show Black = "B"
+instance Show Piece where
+    show Rook = "R"
+    show Knight = "N"
+    show Bishop = "B"
+    show King = "K"
+    show Queen = "Q"
+    show Pawn = "P"
+    
+
+instance Show (Maybe ColoredPiece) where
+    show (Just (ColoredPiece color piece)) = show color ++ show piece
+    show Nothing = " "
 
 instance Show Board where
     show board = line ++ 
@@ -18,6 +34,7 @@ instance Show Board where
                  line ++
                  "   A | B | C | D | E | F | G | H"
         where line = "--+-----------------------------+\n" 
+
 
 pieceAt :: Word64 -> Board -> Maybe ColoredPiece
 pieceAt i (Board board) 
