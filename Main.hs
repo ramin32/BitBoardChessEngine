@@ -10,7 +10,7 @@
 ---------------------------------------------------------
 
 
-import System.Posix
+import Control.Concurrent
 import Board
 
 main = do
@@ -20,7 +20,7 @@ main = do
 
 runGame board color = do
     print board
-    sleep 1
+    threadDelay 1000000
     let nextBoard = executeBestMove board color 
     runGame board $ flipColor color
 

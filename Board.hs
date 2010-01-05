@@ -4,27 +4,32 @@ import Data.Word
 import Data.Bits
 import Data.List
 
-data PieceSet = PieceSet {setType::Piece, board::Word64} deriving (Show)
-data Player = Player {playerColor::Color, pieces::[PieceSet]}
-data Board = Board [Player]
+data PieceSet = PieceSet {setType::Piece, positions::Word64} deriving (Show)
+data Player = Player {playerColor::Color, pieces::[PieceSet]} deriving (Show)
+data Board = Board {board::[Player]}
 data Piece = Pawn | Knight | Bishop | Rook | Queen | King deriving (Eq, Show, Enum)
 data Color = White | Black deriving (Eq, Show)
 data ColoredPiece = ColoredPiece {pieceColor::Color, piece::Piece} deriving (Eq, Show)
 
+
 instance Show Board where
-    show board = ""
+    show board = line ++ 
+                 concat [(show f) ++ " |\n" |f <- [8,7..1]]  ++
+                 line ++
+                 "   A | B | C | D | E | F | G | H"
+        where line = "--+-----------------------------+\n" 
 
 pieceAt :: Word64 -> Board -> Maybe ColoredPiece
 pieceAt i (Board board) 
     | not $ null matches = head matches
     | otherwise = Nothing
-    where matches = map (playerPieceAt i) board
+    where matches = filter (/= Nothing) $ map (playerPieceAt i) board
 
 playerPieceAt :: Word64 -> Player -> Maybe ColoredPiece
 playerPieceAt i (Player color pieces) 
     | not $ null matches = Just (ColoredPiece color $ setType $ head matches)
     | otherwise = Nothing
-    where matches = filter (\x -> i .|. (board x) > 0) pieces
+    where matches = filter (\x -> i .&. (positions x) > 0) pieces
 
 flipColor White = Black
 flipColor Black = White
