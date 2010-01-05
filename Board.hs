@@ -4,22 +4,36 @@ import Data.Word
 import Data.Bits
 import Data.List
 
+data PieceSet = PieceSet {setType::Piece, board::Word64} deriving (Show)
+data Player = Player {playerColor::Color, pieces::[PieceSet]}
+data Board = Board [Player]
 data Piece = Pawn | Knight | Bishop | Rook | Queen | King deriving (Eq, Show, Enum)
-data PieceSet = PieceSet {piece::Piece, board::Word64} deriving (Show)
-type Player = [PieceSet]
-data Board = Board {whitePlayer::Player, blackPlayer::Player} deriving (Show)
+data Color = White | Black deriving (Eq, Show)
+data ColoredPiece = ColoredPiece {pieceColor::Color, piece::Piece} deriving (Eq, Show)
 
-orPlayer :: Player -> Word64
-orPlayer player = foldl' (\acc x -> acc .|. board x) 0 player 
+instance Show Board where
+    show board = ""
 
-orBoard :: Board -> Word64
-orBoard (Board wPlayer bPlayer) = orPlayer wPlayer .|. orPlayer bPlayer
+pieceAt :: Word64 -> Board -> Maybe ColoredPiece
+pieceAt i (Board board) 
+    | not $ null matches = head matches
+    | otherwise = Nothing
+    where matches = map (playerPieceAt i) board
 
+playerPieceAt :: Word64 -> Player -> Maybe ColoredPiece
+playerPieceAt i (Player color pieces) 
+    | not $ null matches = Just (ColoredPiece color $ setType $ head matches)
+    | otherwise = Nothing
+    where matches = filter (\x -> i .|. (board x) > 0) pieces
 
+flipColor White = Black
+flipColor Black = White
+
+padLines :: Word64 -> Int -> Word64
 padLines n lines = n * (0x10 ^ (lines*2))
 
-wPlayer, bPlayer :: Player
-wPlayer = [  PieceSet Pawn 0xff00
+whitePlayer, blackPlayer :: Player
+whitePlayer = Player White [  PieceSet Pawn 0xff00
            , PieceSet Rook 0x81
            , PieceSet Knight 0x42
            , PieceSet Bishop 0x24
@@ -27,7 +41,8 @@ wPlayer = [  PieceSet Pawn 0xff00
            , PieceSet King 0x08
           ]
 
-bPlayer = [  PieceSet Pawn $ padLines 0xff 6
+blackPlayer = Player Black 
+          [  PieceSet Pawn $ padLines 0xff 6
            , PieceSet Rook $ padLines 0x81 7
            , PieceSet Knight $ padLines 0x42 7
            , PieceSet Bishop $ padLines 0x24 7
@@ -35,8 +50,10 @@ bPlayer = [  PieceSet Pawn $ padLines 0xff 6
            , PieceSet King $ padLines 0x08 7
           ]
 
-newBoard = Board wPlayer bPlayer
+newBoard :: Board
+newBoard = Board [whitePlayer, blackPlayer]
 
+bitsOn :: (Floating a, RealFrac a) => a -> [Integer]
 bitsOn n 
     | n <= 0 = []  
     | otherwise = lgN: bitsOn (n - 2^lgN)
