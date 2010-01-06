@@ -3,7 +3,7 @@ module Move where
 file i = i `mod` 8
 rank i = i `div` 8
 
-posToWord file rank = 0x1 * 0x10 ^ (rank * 8 + file - 1)
+posToWord file rank = 2 ^ (rank * 8 + file) 
 
 distance i j = (abs $ rank i - rank j,
                 abs $ file i - file j)

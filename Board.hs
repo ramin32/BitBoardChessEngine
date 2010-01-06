@@ -1,9 +1,9 @@
-{-# LANGUAGE FlexibleInstances #-}
 module Board where
 
 import Data.Word
 import Data.Bits
 import Data.List
+import Move
 
 data PieceSet = PieceSet {setType::Piece, positions::Word64} deriving (Show)
 data Player = Player {playerColor::Color, pieces::[PieceSet]} deriving (Show)
@@ -24,16 +24,21 @@ instance Show Piece where
     show Pawn = "P"
     
 
-instance Show (Maybe ColoredPiece) where
-    show (Just (ColoredPiece color piece)) = show color ++ show piece
-    show Nothing = " "
+showMaybeColoredPiece :: (Maybe ColoredPiece) -> String
+showMaybeColoredPiece (Just (ColoredPiece color piece)) = show color ++ show piece
+showMaybeColoredPiece Nothing = "  "
 
 instance Show Board where
     show board = line ++ 
-                 concat [(show f) ++ " |\n" |f <- [8,7..1]]  ++
+                 concat [
+                            (show r) ++ " |" ++
+                            (intercalate "|" [showMaybeColoredPiece (pieceAt (posToWord f (r-1)) board) | f <- [0..7]])  ++ "|\n"
+                            | r <- [8,7..1]
+                        ]  ++
                  line ++
-                 "   A | B | C | D | E | F | G | H"
-        where line = "--+-----------------------------+\n" 
+                 legend
+        where line   = "--+-----------------------+\n" 
+              legend = "   A |B |C |D |E |F |G |H"
 
 
 pieceAt :: Word64 -> Board -> Maybe ColoredPiece
