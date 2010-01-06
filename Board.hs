@@ -7,10 +7,11 @@ import Move
 
 data PieceSet = PieceSet {setType::Piece, positions::Word64} deriving (Show)
 data Player = Player {playerColor::Color, pieces::[PieceSet]} deriving (Show)
-data Board = Board {board::[Player]}
+data Board = Board {players::[Player]}
 data Piece = Pawn | Knight | Bishop | Rook | Queen | King deriving (Eq)
 data Color = White | Black deriving (Eq)
-data ColoredPiece = ColoredPiece {pieceColor::Color, piece::Piece} deriving (Eq)
+data ColoredPiece = ColoredPiece {pieceColor::Color, piece::Piece} deriving (Show, Eq)
+
 
 instance Show Color where
     show White = "W"
@@ -32,7 +33,8 @@ instance Show Board where
     show board = line ++ 
                  concat [
                             (show r) ++ " |" ++
-                            (intercalate "|" [showMaybeColoredPiece (pieceAt (posToWord f (r-1)) board) | f <- [0..7]])  ++ "|\n"
+                            (intercalate "|" [showMaybeColoredPiece (pieceAt (posToWord f (r-1)) board) | f <- [0..7]])  ++ 
+                            "|\n"
                             | r <- [8,7..1]
                         ]  ++
                  line ++
@@ -80,9 +82,18 @@ blackPlayer = Player Black
 newBoard :: Board
 newBoard = Board [whitePlayer, blackPlayer]
 
-bitsOn :: (Floating a, RealFrac a) => a -> [Integer]
+
+-- Bit Funcitonality
+
+orPlayer :: Player -> Word64
+orPlayer (Player _ pieces) = foldl' (\acc x -> acc .|. positions x) 0 pieces
+
+orBoard :: Board -> Word64
+orBoard (Board players) = foldl' (.|.) 0 $ map orPlayer players
+
+bitsOn :: Word64 -> [Word64]
 bitsOn n 
     | n <= 0 = []  
-    | otherwise = lgN: bitsOn (n - 2^lgN)
-    where lgN = toInteger $ truncate $ logBase 2 n
+    | otherwise = maxBit: bitsOn (n - maxBit)
+    where maxBit = 2 ^ (truncate $ logBase 2 (fromIntegral n))
 
