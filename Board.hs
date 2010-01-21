@@ -31,7 +31,7 @@ pieceAt i (Board board)
 
 playerPieceAt :: Word64 -> Player -> Maybe ColoredPiece
 playerPieceAt i (Player color pieces) 
-    | not $ null matches = Just (ColoredPiece color $ setType $ head matches)
+    | not $ null matches = Just (ColoredPiece (setType $ head matches) color)
     | otherwise = Nothing
     where matches = filter (\x -> i .&. (positions x) > 0) pieces
 

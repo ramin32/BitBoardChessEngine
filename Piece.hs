@@ -2,7 +2,7 @@ module Piece where
 
 data Piece = Pawn | Knight | Bishop | Rook | Queen | King deriving (Eq, Enum)
 data Color = White | Black deriving (Eq)
-data ColoredPiece = ColoredPiece Piece Color 
+data ColoredPiece = ColoredPiece Piece Color deriving (Eq) 
 
 instance Show Piece where
     show piece = case piece of
