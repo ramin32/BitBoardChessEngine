@@ -3,37 +3,17 @@ module Board where
 import Data.Word
 import Data.Bits
 import Data.List
+
 import Move
+import Piece
 
 data PieceSet = PieceSet {setType::Piece, positions::Word64} deriving (Show)
 data Player = Player {playerColor::Color, pieces::[PieceSet]} deriving (Show)
 data Board = Board {players::[Player]}
-data Piece = Pawn | Knight | Bishop | Rook | Queen | King deriving (Eq)
-data Color = White | Black deriving (Eq)
-data ColoredPiece = ColoredPiece {pieceColor::Color, piece::Piece} deriving (Show, Eq)
-
-
-instance Show Color where
-    show White = "W"
-    show Black = "B"
-instance Show Piece where
-    show Rook = "R"
-    show Knight = "N"
-    show Bishop = "B"
-    show King = "K"
-    show Queen = "Q"
-    show Pawn = "P"
-    
-
-showMaybeColoredPiece :: (Maybe ColoredPiece) -> String
-showMaybeColoredPiece (Just (ColoredPiece color piece)) = show color ++ show piece
-showMaybeColoredPiece Nothing = "  "
 
 instance Show Board where
     show board = line ++ 
-                 concat [
-                            (show r) ++ " |" ++
-                            (intercalate "|" [showMaybeColoredPiece (pieceAt (posToWord f (r-1)) board) | f <- [0..7]])  ++ 
+                 concat [(show r) ++ " |" ++ (intercalate "|" [showMaybeColoredPiece (pieceAt (posToWord f (r-1)) board) | f <- [0..7]])  ++ 
                             "|\n"
                             | r <- [8,7..1]
                         ]  ++
@@ -62,7 +42,8 @@ padLines :: Word64 -> Int -> Word64
 padLines n lines = n * (0x10 ^ (lines*2))
 
 whitePlayer, blackPlayer :: Player
-whitePlayer = Player White [  PieceSet Pawn 0xff00
+whitePlayer = Player White
+          [  PieceSet Pawn 0xff00
            , PieceSet Rook 0x81
            , PieceSet Knight 0x42
            , PieceSet Bishop 0x24
@@ -82,7 +63,6 @@ blackPlayer = Player Black
 newBoard :: Board
 newBoard = Board [whitePlayer, blackPlayer]
 
-
 -- Bit Funcitonality
 
 orPlayer :: Player -> Word64
@@ -90,10 +70,4 @@ orPlayer (Player _ pieces) = foldl' (\acc x -> acc .|. positions x) 0 pieces
 
 orBoard :: Board -> Word64
 orBoard (Board players) = foldl' (.|.) 0 $ map orPlayer players
-
-bitsOn :: Word64 -> [Word64]
-bitsOn n 
-    | n <= 0 = []  
-    | otherwise = maxBit: bitsOn (n - maxBit)
-    where maxBit = 2 ^ (truncate $ logBase 2 (fromIntegral n))
 

@@ -12,6 +12,7 @@
 
 import Control.Concurrent
 import Board
+import Piece
 
 main = do
     let board = newBoard
