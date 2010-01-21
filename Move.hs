@@ -2,7 +2,6 @@ module Move where
 
 import Data.Word
 import Piece
-import Bit
 import Data.Bits
 
 type Move = Int
