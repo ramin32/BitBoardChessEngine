@@ -9,9 +9,11 @@ type Position = Word64
 type MoveCondition = Position -> Position -> Bool
 data Moves = Moves {moves::[Move], condition::[MoveCondition]} 
 
+log2 :: Position -> Int
+log2 i = truncate $ logBase 2 $ fromIntegral i
 
-file i = mod i (bit 8)
-rank i = div i (bit 8)
+file i = mod (log2 i) 8 
+rank i = div (log2 i) 8
 
 posToWord file rank = bit (rank * 8 + file) 
 
@@ -53,6 +55,11 @@ negativeDiagnalMoves = Moves [-7, -9] [diagnalMove]
 diagnalMoves = concatMoves [positiveDiagnalMoves, negativeDiagnalMoves] 
 knightMoves = Moves [6,10,15,17, -6,-10,-15,-17] [knightMove]
 allDirectionMoves = concatMoves [horizontalMoves, verticalMoves, diagnalMoves]
+firstWhitePawnMoves = Moves [8,16] [sameFile]
+firstBlackPawnMoves = Moves [-8,-16] [sameFile]
+whitePawnMoves = Moves [8] [sameFile]
+blackPawnMoves = Moves [-8] [sameFile]
+
 
 allConditions :: [MoveCondition] -> Position -> Position -> Bool
 allConditions conditions p1 p2 = (onBoard p2) && (and $ map (\c -> c p1 p2) conditions)
@@ -69,8 +76,8 @@ generateSingleMoves :: Moves -> Position -> [Position]
 generateSingleMoves (Moves moves conditions) pos = 
     takeWhile (allConditions conditions pos) $ map (shift pos) moves
 
-iterateMoves :: ColoredPiece -> Position -> [Position]
-iterateMoves coloredPiece from = case coloredPiece of
+iterateMoves :: ColoredPiece -> Position -> Bool -> [Position]
+iterateMoves coloredPiece from attack = case coloredPiece of
     (ColoredPiece Rook _) -> generateMoves horizontalMoves from ++
                              generateMoves verticalMoves from
     (ColoredPiece Knight _) -> generateMoves knightMoves from 
@@ -79,9 +86,11 @@ iterateMoves coloredPiece from = case coloredPiece of
                                iterateMoves (ColoredPiece Rook c) from
     (ColoredPiece King _)  -> generateSingleMoves allDirectionMoves from
     (ColoredPiece Pawn White)  
-        | rank from == 1 -> [from + 8, from + 16]
-        | otherwise -> filter onBoard [from + 8]
+        | attack -> generateSingleMoves positiveDiagnalMoves from
+        | rank from == 1 -> generateSingleMoves firstWhitePawnMoves from
+        | otherwise -> generateSingleMoves whitePawnMoves from
     (ColoredPiece Pawn Black) 
-        | rank from == 6 -> [from - 8, from - 16]
-        | otherwise -> filter onBoard [from - 8]
+        | attack -> generateSingleMoves negativeDiagnalMoves from
+        | rank from == 6 -> generateSingleMoves firstBlackPawnMoves from
+        | otherwise -> generateSingleMoves blackPawnMoves from
 
